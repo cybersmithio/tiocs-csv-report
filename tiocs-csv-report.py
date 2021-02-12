@@ -16,24 +16,23 @@ import csv
 import argparse
 from tenable.io import TenableIO
 
-def GenerateReport(DEBUG,accesskey,secretkey,repo, image, tag):
+
+def GenerateReport(DEBUG, accesskey, secretkey,repo, image, tag):
 
 	client = TenableIO(accesskey, secretkey)
 
-	#Gather the list of repositories
-	resp=client.get("container-security/api/v2/reports/"+repo+"/"+image+"/"+tag)
-	respdata=json.loads(resp.text)
+	# Gather the list of repositories
+	resp = client.get("container-security/api/v2/reports/"+repo+"/"+image+"/"+tag)
+	respdata = json.loads(resp.text)
 	if DEBUG:
-		print("Response",respdata)
+		print("Response", respdata)
 		print("\n\n")
 
-	DEBUG=False
 
 	with open("tiocs-report.csv","w") as csvfile:
-			fieldnames=['cve','severity','vuln publication date','affected packages','remediation','description']
-			writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
+			fieldnames=['cve', 'severity', 'vuln publication date', 'affected packages', 'remediation', 'description']
+			writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 			writer.writeheader()
-			DEBUG=True
 			for i in respdata['findings']:
 				packages=""
 				for j in i['packages']:
@@ -53,7 +52,7 @@ def GenerateReport(DEBUG,accesskey,secretkey,repo, image, tag):
 						print("Description",i['nvdFinding']['description'])
 						print("Vulnerability publication date",i['nvdFinding']['published_date'])
 
-					rowdict={'cve':i['nvdFinding']['cve'], 'severity': i['nvdFinding']['cvss_score'], 'vuln publication date': i['nvdFinding']['published_date'],'remediation': str(i['nvdFinding']['remediation']), 'description': str(i['nvdFinding']['description']), 'affected packages': packages}
+					rowdict={'cve': i['nvdFinding']['cve'], 'severity': i['nvdFinding']['cvss_score'], 'vuln publication date': i['nvdFinding']['published_date'],'remediation': str(i['nvdFinding']['remediation']), 'description': str(i['nvdFinding']['description']), 'affected packages': packages}
 					writer.writerow(rowdict)
 	csvfile.close()
 	return
@@ -74,12 +73,13 @@ DEBUG=False
 #Set debugging on or off
 
 if args.debug:
-	DEBUG=True
+	DEBUG = True
 
-accesskey=None
-secretkey=None
-repo=None
-#Pull as much information from the environment variables
+accesskey = None
+secretkey = None
+repo = None
+
+# Pull as much information from the environment variables
 # as possible, and where missing then initialize the variables.
 if args.accesskey[0] is None:
 		accesskey=os.getenv('TIOACCESSKEY')
@@ -95,9 +95,9 @@ if args.repo[0] is not None:
 	repo=args.repo[0]
 
 if DEBUG:
-	print("Connecting to cloud.tenable.com with access key",accesskey,"to report on repository",repo)
+	print("Connecting to cloud.tenable.com with access key", accesskey, "to report on repository", repo)
 
 
-GenerateReport(DEBUG,accesskey,secretkey,repo, args.image[0], args.tag[0])
+GenerateReport(DEBUG, accesskey, secretkey, repo, args.image[0], args.tag[0])
 
 
